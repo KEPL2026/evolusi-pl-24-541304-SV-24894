@@ -1,0 +1,40 @@
+@'
+name: CI
+
+on:
+  push:
+    branches: [main, dev, "feature/**"]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  lint:
+    name: Lint PHP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+      - name: Run PHP lint
+        run: find . -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+      - name: Copy .env
+        run: cp .env.example .env
+      - name: Generate app key
+        run: php artisan key:generate
+      - name: Run tests
+        run: php artisan test
+'@ | Set-Content -Path .github\workflows\ci.yml -Encoding utf8
